@@ -64,6 +64,25 @@ def create_build_dir(platform, build_type) -> str:
             build_dir = ""
     return build_dir
 
+# get custom sysroot vars as str
+def setup_custom_sysroot_env() -> str:
+  env_vars = []
+  env_vars += ['LD_LIBRARY_PATH=\"' + config.get_custom_sysroot_lib() + "\""]
+  env_vars += ['PATH=\"' + config.option("sysroot") + "/usr/bin:" + base.get_env("PATH") + "\""]
+  env_vars += ['CC=\"' + config.get_custom_sysroot_bin() + "/gcc\""]
+  env_vars += ['CXX=\"' + config.get_custom_sysroot_bin() + "/g++\""]
+  env_vars += ['AR=\"' + config.get_custom_sysroot_bin() + "/ar\""]
+  env_vars += ['RABLIB=\"' + config.get_custom_sysroot_bin() + "/ranlib\""]
+  env_vars += ['CFLAGS=\"' + "--sysroot=" + config.option("sysroot") + "\""]
+  env_vars += ['CXXFLAGS=\"' + "--sysroot=" + config.option("sysroot") + "\""]
+  env_vars += ['LDFLAGS=\"' + "--sysroot=" + config.option("sysroot") + "\""]
+
+  env_str = ""
+  for env_var in env_vars:
+    env_str += env_var + " "
+
+  return env_str
+
 def get_args(platform, build_type, build_dir):
     if "win" in platform:
         args = []
@@ -148,13 +167,9 @@ def make():
         if config.option("sysroot") != "":
             args += ["CROSS_COMPILE=" + config.get_custom_sysroot_bin() + "/"]
 
-        base.cmd("./../../../libwebp/configure",  args)
-
-        if config.option("sysroot") != "":
-            base.setup_custom_sysroot_env()
-        base.cmd("make", ["-j$(nproc)"])
-        if config.option("sysroot") != "":
-            base.restore_sysroot_env()
+        env_str = setup_custom_sysroot_env() if config.option("sysroot") != "" else ""
+        base.cmd(env_str + "./../../../libwebp/configure",  args)
+        base.cmd(env_str + "make", ["-j$(nproc)"])
 
     #MAC, IOS
     elif -1 != platform.find("mac") or -1 != platform.find("ios"):
