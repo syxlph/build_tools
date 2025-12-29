@@ -89,7 +89,7 @@ def get_args(platform, build_type, build_dir):
         args.append("call \"" + config.option("vs-path") + "/vcvarsall.bat\" " + ARCHES[platform])
         args.append("call nmake /f Makefile.vc CFG=" + build_type + "-static" + " OBJDIR=" + build_dir)
         return args
-    elif "linux" in platform or "android" in platform:
+    elif "linux" in platform:
         cflags = "-O3 -DNDEBUG"
         if build_type == "debug":
             cflags = "-O0 -g"
@@ -139,6 +139,15 @@ def get_args(platform, build_type, build_dir):
                 "--disable-libwebpmux", "--disable-libwebpextras", 
                 "CC=clang -arch " + short_arch + " -isysroot $(xcrun --sdk " + xcode_sdk + " --show-sdk-path)",
                 "CFLAGS=" + cflags]
+    elif "android" in platform:
+        cflags = "-O3 -DNDEBUG"
+        if build_type == "debug":
+            cflags = "-O0 -g"
+
+        return ["--host=" + ARCHES[platform], "--enable-static", "--disable-shared",
+                "--disable-libwebpdecoder", "--disable-libwebpdemux",
+                "--disable-libwebpmux", "--disable-libwebpextras", 
+                "CFLAGS=" + cflags, "LDFLAGS=-static"]
 
 def make():
     print("[fetch & build]: webp")
@@ -159,8 +168,8 @@ def make():
     if "windows" == base.host_platform():
         base.run_as_bat(args, True)
     
-    # LINUX, ANDROID
-    elif -1 != platform.find("linux") or -1 != platform.find("android"):
+    # LINUX
+    elif -1 != platform.find("linux"):
         base.cmd("./autogen.sh")
         os.chdir(build_dir)
 
@@ -171,8 +180,8 @@ def make():
         base.cmd(env_str + "./../../../libwebp/configure",  args)
         base.cmd(env_str + "make", ["-j$(nproc)"])
 
-    #MAC, IOS
-    elif -1 != platform.find("mac") or -1 != platform.find("ios"):
+    #MAC, IOS, ANDROID
+    elif -1 != platform.find("mac") or -1 != platform.find("ios") or -1 != platform.find("android"):
         base.cmd("./autogen.sh")
         os.chdir(build_dir)
         base.cmd("./../../../libwebp/configure",  args)
