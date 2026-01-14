@@ -1391,7 +1391,8 @@ def mac_correct_rpath_x2t(dir):
   mac_correct_rpath_library("OFDFile", ["UnicodeConverter", "kernel", "graphics", "PdfFile"])
   mac_correct_rpath_library("DocxRenderer", ["UnicodeConverter", "kernel", "graphics"])
   mac_correct_rpath_library("IWorkFile", ["UnicodeConverter", "kernel"])
-  mac_correct_rpath_library("HWPFile", ["UnicodeConverter", "kernel", "graphics"])
+  mac_correct_rpath_library("HWPFile", ["UnicodeConverter", "kernel", "graphics", "StarMathConverter"])
+  mac_correct_rpath_library("StarMathConverter", ["kernel"])
 
   def correct_core_executable(name, libs):
     cmd("chmod", ["-v", "+x", name])
@@ -1399,7 +1400,7 @@ def mac_correct_rpath_x2t(dir):
     mac_correct_rpath_binary(name, mac_icu_libs + libs)
     return
 
-  correct_core_executable("x2t", ["UnicodeConverter", "kernel", "kernel_network", "graphics", "PdfFile", "XpsFile", "OFDFile", "DjVuFile", "HtmlFile2", "Fb2File", "EpubFile", "doctrenderer", "DocxRenderer", "IWorkFile", "HWPFile"])
+  correct_core_executable("x2t", ["UnicodeConverter", "kernel", "kernel_network", "graphics", "PdfFile", "XpsFile", "OFDFile", "DjVuFile", "HtmlFile2", "Fb2File", "EpubFile", "doctrenderer", "DocxRenderer", "IWorkFile", "HWPFile", "StarMathConverter"])
   if is_file("./allfontsgen"):
     correct_core_executable("allfontsgen", ["UnicodeConverter", "kernel", "graphics"])
   if is_file("./allthemesgen"):
@@ -1935,6 +1936,7 @@ def check_module_version(actual_version, clear_func):
 def set_sysroot_env(platform):
   global ENV_BEFORE_SYSROOT
   ENV_BEFORE_SYSROOT = dict(os.environ)
+
   if "linux" != host_platform():
     return
   if config.option("sysroot") == "":
@@ -1957,11 +1959,12 @@ def set_sysroot_env(platform):
   os.environ['LDFLAGS'] = "--sysroot=" + path
 
   check_python()
-    
+  return
+
 def restore_sysroot_env():
   os.environ.clear()
   os.environ.update(ENV_BEFORE_SYSROOT)
-    
+
 def check_python():
   if ("linux" != host_platform()):
     return
@@ -2050,7 +2053,7 @@ def create_artifacts_qemu_win_arm():
   if config.option("qemu-win-arm64-dir") == "":
     print("For deploying win_arm64 on non arm host you should provide qemu-win-arm64-dir. More info in tools/win/qemu/README.md")
     return
-    
+
   old_curr_dir = os.path.abspath(os.curdir)
   qemu_dir = os.path.abspath(config.option("qemu-win-arm64-dir"))
 
@@ -2065,7 +2068,7 @@ def create_x2t_js_cache(dir, product, platform):
     doctrenderer_lib = "libdoctrenderer.dylib" if is_file(dir + "/libdoctrenderer.dylib") else "doctrenderer.framework/doctrenderer"
     if os.path.getsize(dir + "/" + doctrenderer_lib) < 5*1024*1024:
       return
-  
+
   if ((platform == "linux_arm64") and not is_os_arm()):
     cmd_in_dir_qemu(platform, dir, "./x2t", ["-create-js-snapshots"], True)
     return
