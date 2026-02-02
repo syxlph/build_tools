@@ -10,6 +10,7 @@ import config
 # libs versions
 X265_VERSION = "4.1"
 DE265_VERSION = "1.0.16"
+AOM_VERSION = "3.12.0"
 # 1.18.2 - the latest version of libheif supporting C++11 builds (as for now)
 HEIF_VERSION = "1.18.2"
 
@@ -279,6 +280,52 @@ def make_de265(base_dir, build_type):
   make_common(build_de265, cmake_args)
   return
 
+def make_aom(base_dir, build_type):
+  # fetch lib repo
+  if not base.is_dir("aom"):
+    fetch_repo("https://aomedia.googlesource.com/aom", f"v{AOM_VERSION}")
+
+  # prepare cmake args
+  cmake_dir = base_dir + "/aom"
+  cmake_args = [
+    cmake_dir,
+    "-DCMAKE_BUILD_TYPE=" + build_type,
+    "-DBUILD_SHARED_LIBS=OFF",            # do not build shared libs
+    "-DENABLE_SDL=OFF",                   # disable SDL
+    "-DENABLE_DECODER=ON",                # enable AOM V1 decoder (for AVIF image format)
+    "-DENABLE_ENCODER=ON",                # enable AOM V1 encoder (for AVIF image format)
+    "-DENABLE_TESTS=OFF",                 # do not build tests
+    "-DENABLE_DOCS=OFF",                  # do not build docs
+    "-DENABLE_EXAMPLES=OFF",              # do not build examples
+    "-DENABLE_TOOLS=OFF",                 # do not build lib tools
+  ]
+
+  # lib build function
+  def build_aom(platform, cmake_args):
+    # check if target lib has already been built
+    build_dir = get_build_dir(base_dir, "aom", platform, build_type)
+    if platform.find("win") != -1:
+      target_lib = os.path.join(build_dir, build_type, "aom.lib")
+    else:
+      target_lib = os.path.join(build_dir, "aom.a")
+    if base.is_file(target_lib):
+      return
+    # go to the build directory
+    base.create_dir(build_dir)
+    os.chdir(build_dir)
+    # run build
+    build_with_cmake(platform, cmake_args, build_type)
+    # for ios copy target library from the default build path
+    if platform.find("ios") != -1:
+      xcode_sdk = get_xcode_sdk(platform)
+      base.copy_file(f"/{build_type}-{xcode_sdk}/aom.a", build_dir)
+    # reset directory
+    os.chdir(base_dir)
+    return
+  
+  make_common(build_aom, cmake_args)
+  return
+
 def make_heif(base_dir, build_type):
   # fetch lib repo
   if not base.is_dir("libheif"):
@@ -303,8 +350,8 @@ def make_heif(base_dir, build_type):
     "-DCMAKE_BUILD_TYPE=" + build_type,
     "-DBUILD_SHARED_LIBS=OFF",                        # do not build shared libs
     "-DWITH_LIBSHARPYUV=OFF",                         # do not build libsharpyuv (for RGB <--> YUV color space conversions)
-    "-DWITH_AOM_DECODER=OFF",                         # do not build AOM V1 decoder (for AVIF image format)
-    "-DWITH_AOM_ENCODER=OFF",                         # do not build AOM V1 encoder (for AVIF image format)
+    "-DWITH_AOM_DECODER=ON",                          # enable AOM V1 decoder (for AVIF image format)
+    "-DWITH_AOM_ENCODER=ON",                          # enable AOM V1 encoder (for AVIF image format)
     "-DWITH_GDK_PIXBUF=OFF",                          # do not build gdk-pixbuf plugin (UNIX only)
     "-DWITH_GNOME=OFF",                               # do not build gnome plugin (Linux only)
     "-DWITH_EXAMPLES=OFF",                            # do not build examples
@@ -331,19 +378,23 @@ def make_heif(base_dir, build_type):
     # add paths to dependent libraries and includes to cmake args
     de265_build_dir = get_build_dir(base_dir, "libde265", platform, build_type)
     x265_build_dir = get_build_dir(base_dir, "x265_git", platform, build_type)
+    aom_build_dir = get_build_dir(base_dir, "aom", platform, build_type)
     cmake_args_ext = [
       f"-DLIBDE265_INCLUDE_DIR={de265_build_dir}",
-      f"-DX265_INCLUDE_DIR={x265_build_dir}"
+      f"-DX265_INCLUDE_DIR={x265_build_dir}",
+      f"-DAOM_INCLUDE_DIR={base_dir}/aom"
     ]
     if platform.find("win") != -1:
       cmake_args_ext += [
         f"-DLIBDE265_LIBRARY={de265_build_dir}/libde265/{build_type}/libde265.lib",
-        f"-DX265_LIBRARY={x265_build_dir}/{build_type}/x265-static.lib"
+        f"-DX265_LIBRARY={x265_build_dir}/{build_type}/x265-static.lib",
+        f"-DAOM_LIBRARY={aom_build_dir}/{build_type}/aom.lib"
       ]
     else:
       cmake_args_ext += [
         f"-DLIBDE265_LIBRARY={de265_build_dir}/libde265/libde265.a",
-        f"-DX265_LIBRARY={x265_build_dir}/libx265.a"
+        f"-DX265_LIBRARY={x265_build_dir}/libx265.a",
+        f"-DAOM_LIBRARY={aom_build_dir}/aom.a"
       ]
     # run build
     build_with_cmake(platform, cmake_args + cmake_args_ext, build_type)
@@ -359,6 +410,8 @@ def make_heif(base_dir, build_type):
   return
 
 def clear_module():
+  if base.is_dir("aom"):
+    base.delete_dir_with_access_error("aom")
   if base.is_dir("libde265"):
     base.delete_dir_with_access_error("libde265")
   if base.is_dir("x265_git"):
@@ -389,6 +442,8 @@ def make():
   make_x265(base_dir, build_type)
   # build decoder library
   make_de265(base_dir, build_type)
+  # build decoder/encoder library for AVIF image format
+  make_aom(base_dir, build_type)
 
   # build libheif
   make_heif(base_dir, build_type)
