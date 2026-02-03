@@ -16,6 +16,7 @@ def install_deps():
               "build-essential",
               "ca-certificates",
               "cmake",
+              "perl",
               "curl",
               "git",
               "glib-2.0-dev",

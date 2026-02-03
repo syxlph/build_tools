@@ -33,6 +33,8 @@
 
     "core/DesktopEditor/doctrenderer/doctrenderer.pro",
 
+    "core/DesktopEditor/xmlsec/src/ooxmlsignature.pro",
+
     "[!no_x2t]core/OOXML/Projects/Linux/DocxFormatLib/DocxFormatLib.pro",
     "[!no_x2t]core/OOXML/Projects/Linux/PPTXFormatLib/PPTXFormatLib.pro",
     "[!no_x2t]core/OOXML/Projects/Linux/XlsbFormatLib/XlsbFormatLib.pro",
@@ -85,8 +87,6 @@
   "desktop" : [
     "core",
     "multimedia",
-
-    "core/DesktopEditor/xmlsec/src/ooxmlsignature.pro",
 
     "desktop-sdk/ChromiumBasedEditors/lib/ascdocumentscore.pro",
     "desktop-sdk/ChromiumBasedEditors/lib/ascdocumentscore_helper.pro",

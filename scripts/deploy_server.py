@@ -94,6 +94,7 @@ def make():
     base.copy_lib(core_build_dir + "/lib/" + platform_postfix, converter_dir, "HWPFile")
     base.copy_lib(core_build_dir + "/lib/" + platform_postfix, converter_dir, "DocxRenderer")
     base.copy_lib(core_build_dir + "/lib/" + platform_postfix, converter_dir, "StarMathConverter")
+    base.copy_lib(core_build_dir + "/lib/" + platform_postfix, converter_dir, "ooxmlsignature")
     base.copy_file(git_dir + "/sdkjs/pdf/src/engine/cmap.bin", converter_dir + "/cmap.bin")
     base.copy_exe(core_build_dir + "/bin/" + platform_postfix, converter_dir, "x2t")
 
@@ -179,6 +180,12 @@ def make():
     document_templates = build_server_dir + '/../document-templates'
     base.copy_dir(document_templates_files + '/new', document_templates + '/new')
     base.copy_dir(document_templates_files + '/sample', document_templates + '/sample')
+
+    #document-formats
+    document_formats_files = server_dir + '/../document-formats'
+    document_formats = build_server_dir + '/../document-formats'
+    base.create_dir(document_formats)
+    base.copy_file(document_formats_files + '/onlyoffice-docs-formats.json', document_formats + '/onlyoffice-docs-formats.json')
 
     #license
     license_file1 = server_dir + '/LICENSE.txt'

@@ -73,6 +73,7 @@ def make():
     base.copy_lib(build_libraries_path, root_dir + "/converter", "HWPFile")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "DocxRenderer")
     base.copy_lib(build_libraries_path, root_dir + "/converter", "StarMathConverter")
+    base.copy_lib(build_libraries_path, root_dir + "/converter", "ooxmlsignature", "xp" if isWindowsXP else "")
 
     if ("ios" == platform):
       base.copy_lib(build_libraries_path, root_dir + "/converter", "x2t")
@@ -138,7 +139,6 @@ def make():
 
     # libraries
     base.copy_lib(build_libraries_path, root_dir, "hunspell")
-    base.copy_lib(build_libraries_path + ("/xp" if isWindowsXP else ""), root_dir, "ooxmlsignature")
     base.copy_lib(build_libraries_path + ("/xp" if isWindowsXP else ""), root_dir, "ascdocumentscore")
     if (0 != platform.find("mac")):
       base.copy_lib(build_libraries_path + ("/xp" if isWindowsXP else ""), root_dir, "qtascdocumentscore")
