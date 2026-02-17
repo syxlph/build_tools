@@ -1365,7 +1365,10 @@ def mac_change_rpath_library(lib_name, old, new):
 
 def mac_correct_rpath_binary(path, libs):
   # if framework are built, instead of correcting lib paths add `@loader_path` to rpaths with `mac_add_loader_path_to_rpath()`
-  if config.check_option("config", "bundle_dylibs"):
+  try:
+    if config.check_option("config", "bundle_dylibs"):
+      return
+  except:
     return
 
   for lib in libs:
