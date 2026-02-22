@@ -59,7 +59,7 @@ def make():
     base.create_dir(build_server_dir + '/Metrics/node_modules/modern-syslog/build/Release')
     base.copy_file(server_dir + "/Metrics/node_modules/modern-syslog/build/Release/core.node", build_server_dir + "/Metrics/node_modules/modern-syslog/build/Release/core.node")
 
-    if (base.is_exist(server_admin_panel_dir)):
+    if "server-admin-panel" in base.get_server_addons() and base.is_exist(server_admin_panel_dir):
       # AdminPanel server part
       base.create_dir(build_server_dir + '/AdminPanel/server')
       base.copy_exe(server_admin_panel_dir + "/server", build_server_dir + '/AdminPanel/server', "adminpanel")

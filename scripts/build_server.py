@@ -53,7 +53,7 @@ def make():
   base.cmd_in_dir(server_dir + "/DocService", "pkg", [".", "-t", pkg_target, "--options", "max_old_space_size=6144", "-o", "docservice"])
   base.cmd_in_dir(server_dir + "/FileConverter", "pkg", [".", "-t", pkg_target, "-o", "converter"])
   base.cmd_in_dir(server_dir + "/Metrics", "pkg", [".", "-t", pkg_target, "-o", "metrics"])
-  if (base.is_exist(server_admin_panel_dir)):
+  if "server-admin-panel" in base.get_server_addons() and base.is_exist(server_admin_panel_dir):
     base.cmd_in_dir(server_admin_panel_dir + "/server", "pkg", [".", "-t", pkg_target, "-o", "adminpanel"])
 
   example_dir = base.get_script_dir() + "/../../document-server-integration/web/documentserver-example/nodejs"
