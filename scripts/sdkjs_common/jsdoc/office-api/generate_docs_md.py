@@ -10,7 +10,8 @@ editors = {
     "word": "text-document-api",
     "cell": "spreadsheet-api",
     "slide": "presentation-api",
-    "forms": "form-api"
+    "forms": "form-api",
+    "pdf": "pdf-api",
 }
 
 
@@ -482,11 +483,13 @@ def process_doclets(data, output_dir, editor_name):
     if editor_name == 'word':
         example_editor_name += 'docx'
     elif editor_name == 'forms':
-        example_editor_name += 'pdf'
+        example_editor_name += 'forms'
     elif editor_name == 'slide':
         example_editor_name += 'pptx'
     elif editor_name == 'cell':
         example_editor_name += 'xlsx'
+    elif editor_name == 'pdf':
+        example_editor_name += 'pdf'
 
     for doclet in data:
         if doclet['kind'] == 'class':

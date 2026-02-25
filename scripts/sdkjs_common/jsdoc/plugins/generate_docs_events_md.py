@@ -11,7 +11,8 @@ editors = {
     "word": "text-document-api",
     "cell": "spreadsheet-api",
     "slide": "presentation-api",
-    "forms": "form-api"
+    "forms": "form-api",
+    "pdf": "pdf-api"
 }
 
 script_path = os.path.abspath(__file__)
