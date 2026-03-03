@@ -454,7 +454,7 @@ def generate_enumeration_markdown(enumeration, enumerations, classes, example_ed
         content += "## Type\n\n"
         # If it's not a union and has no properties, simply print the type(s).
         types = enumeration['type']['names']
-        t_md = generate_data_types_markdown(types, enumerations, classes)
+        t_md = generate_data_types_markdown(types, enumerations, classes, '../')
         content += t_md + "\n\n"
 
     # Example
