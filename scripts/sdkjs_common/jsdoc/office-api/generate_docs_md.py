@@ -647,9 +647,6 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    if args.translations is None:
-        args.translations = args.destination + "/translations.json"
-        
     generate(args.destination, args.translations)
     print("START_MISSING_EXAMPLES")
     print(",".join(missing_examples))
