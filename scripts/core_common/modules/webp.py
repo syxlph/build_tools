@@ -158,8 +158,10 @@ def make():
         build_type = "debug"
     platform = config.option("platform")
     build_dir = create_build_dir(platform, build_type)
-    args = get_args(platform, build_type, build_dir)
     
+    if -1 != platform.find("ios"):
+        args_simulator = get_args("iossimulator", build_type, build_dir)
+    args = get_args(platform, build_type, build_dir)
     
     if build_dir == "":
         return
@@ -180,12 +182,27 @@ def make():
         base.cmd(env_str + "./../../../libwebp/configure",  args)
         base.cmd(env_str + "make", ["-j$(nproc)"])
 
-    #MAC, IOS, ANDROID
+    # MAC, ANDROID
     elif -1 != platform.find("mac") or -1 != platform.find("ios") or -1 != platform.find("android"):
         base.cmd("./autogen.sh")
         os.chdir(build_dir)
         base.cmd("./../../../libwebp/configure",  args)
         base.cmd("make", ["-j$(sysctl -n hw.ncpu)"])
 
+    # IOS
+    elif -1 != platform.find("ios"):
+        base.cmd("./autogen.sh")
+        os.chdir(build_dir + "/ios")
+        base.cmd("./../../../libwebp/configure",  args)
+        base.cmd("make", ["-j$(sysctl -n hw.ncpu)"])
+        os.chdir(build_dir + "/iossimulator")
+        base.cmd("./../../../libwebp/configure",  args_simulator)
+        base.cmd("make", ["-j$(sysctl -n hw.ncpu)"])
+        os.chdir(build_dir)
+        base.cmd("lipo", ["-create", "/ios/src/.libs/libwebp.a", "/iossimulator/src/.libs/libwebp.a", "-output", "/libwebp.a"])
+        base.cmd("lipo", ["-create", "/ios/src/.libs/libwebpdecoder.a", "/iossimulator/src/.libs/libwebpdecoder.a", "-output", "/libwebpdecoder.a"])
+        base.cmd("lipo", ["-create", "/ios/src/.libs/libwebpdemux.a", "/iossimulator/src/.libs/libwebpdemux.a", "-output", "/libwebpdemux.a"])
+        base.cmd("lipo", ["-create", "/ios/src/.libs/libwebpmux.a", "/iossimulator/src/.libs/libwebpmux.a", "-output", "/libwebpmux.a"])
+        
     os.chdir(old_dir)
     return
