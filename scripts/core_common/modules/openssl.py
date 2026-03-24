@@ -8,6 +8,14 @@ import os
 import platform
 import openssl_mobile
 
+
+def apply_linux_sysroot_makefile_patches(makefile_path, sysroot_bin, sysroot_path, base_module=base):
+  base_module.replaceInFile(makefile_path, "CROSS_COMPILE=", "CROSS_COMPILE=" + sysroot_bin + "/")
+  base_module.replaceInFile(makefile_path, "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + sysroot_path)
+  base_module.replaceInFile(makefile_path, "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + sysroot_path)
+  base_module.replaceInFile(makefile_path, "LDFLAGS=", "LDFLAGS=--sysroot=" + sysroot_path)
+  return
+
 def clean():
   if base.is_dir("openssl"):
     base.delete_dir_with_access_error("openssl")
@@ -99,9 +107,7 @@ def make():
       base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden")
       base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden")
     else:
-      base.replaceInFile("./Makefile", "CROSS_COMPILE=", "CROSS_COMPILE=" + config.get_custom_sysroot_bin("linux_64") + "/")
-      base.replaceInFile("./Makefile", "CFLAGS=-Wall -O3", "CFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + config.option("sysroot_linux_64"))
-      base.replaceInFile("./Makefile", "CXXFLAGS=-Wall -O3", "CXXFLAGS=-Wall -O3 -fvisibility=hidden --sysroot=" + config.option("sysroot_linux_64"))
+      apply_linux_sysroot_makefile_patches("./Makefile", config.get_custom_sysroot_bin("linux_64"), config.option("sysroot_linux_64"))
 
     if config.option("sysroot") == "":
       base.cmd("make", [])
