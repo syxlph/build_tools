@@ -5,6 +5,7 @@ import shutil
 import argparse
 import generate_docs_json
 import json
+from pathlib import PurePosixPath
 
 # Configuration files
 editors = {
@@ -25,8 +26,31 @@ translations = {}
 translations_lang = None
 missed_translations = {}
 used_translations_keys = {}
-
+global_output_dir = ""
 cur_editor_name = None
+
+def find_common_path_part(path_full: str, path_suffix: str, anchor: str) -> str:
+    path_full = path_full.replace('\\', '/')
+    path_suffix = path_suffix.replace('\\', '/')
+    
+    parts1 = PurePosixPath(path_full).parts
+    parts2 = PurePosixPath(path_suffix).parts
+    
+    try:
+        idx1 = [p.lower() for p in parts1].index(anchor.lower())
+        idx2 = [p.lower() for p in parts2].index(anchor.lower())
+    except ValueError:
+        return ""
+        
+    common_segments = []
+    
+    for p1, p2 in zip(parts1[idx1:], parts2[idx2:]):
+        if p1.lower() == p2.lower(): 
+            common_segments.append(p1)
+        else:
+            break
+            
+    return "/".join(common_segments)
 
 def load_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -64,31 +88,21 @@ def process_link_tags(text, root=''):
     For a method, if an alias is not specified, the name is left in the format 'Class#Method'.
     """
     
-    lang_path = ""
-    if translations_lang is not None:
-        lang_path = f"{translations_lang}/"
-        
-    reserved_links = {
-        '/docbuilder/global#ShapeType': f"{'../../../../../../' if root == '' else '../../../../../' if root == '../' else root}{lang_path}docs/office-api/usage-api/text-document-api/Enumeration/ShapeType.md",
-        '/plugin/config': f'https://api.onlyoffice.com/{lang_path}docs/plugin-and-macros/structure/configuration/',
-        '/docbuilder/basic': f'https://api.onlyoffice.com/{lang_path}docs/office-api/usage-api/text-document-api/'
-    }
-
     def replace_link(match):
-        content = match.group(1).strip()  # Example: "/docbuilder/global#ShapeType shape type" or "global#ErrorValue ErrorValue"
+        content = match.group(1).strip()  # Example: "global#ShapeType shape type" or "global#ErrorValue ErrorValue
         parts = content.split()
         ref = parts[0]
         label = parts[1] if len(parts) > 1 else None
 
-        if ref.startswith('/'):
-            # Handle reserved links using mapping
-            if ref in reserved_links:
-                url = reserved_links[ref]
-                display_text = label if label else ref
-                return f"[{display_text}]({url})"
-            else:
-                # If the link is not in the mapping, return the original construction
-                return match.group(0)
+        if ref.startswith('/docs/'):
+            url = root + '../../../..' + ref
+            display_text = label if label else ref
+            
+            if url.endswith('/'):
+                last_dir = url.rstrip('/').split('/')[-1]
+                url = f"{url}{last_dir}"
+        
+            return f"[{display_text}]({url}.md)"
         elif ref.startswith("global#"):
             # Handle links to typedef (similar logic as before)
             typedef_name = ref.split("#")[1]
@@ -585,6 +599,8 @@ def process_doclets(data, output_dir, editor_name):
 def generate(output_dir, translations_file):
     global translations
     global translations_lang
+    global global_output_dir
+    global_output_dir = output_dir
     
     if translations_file is not None and os.path.exists(translations_file):
         translations = load_json(translations_file)
