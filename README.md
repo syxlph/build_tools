@@ -79,6 +79,16 @@ If you prefer using Docker, you can build all products inside a container. This 
 
 You've done it! The results will be in the ```./out``` directory you created.
 
+## Publish a pinned builder image
+
+This fork uses a pinned builder image for Modal-based source builds instead of rebuilding the builder environment on every ONLYOFFICE artifact build.
+
+Use the GitHub Actions workflow in [`.github/workflows/publish-builder-image.yml`](./.github/workflows/publish-builder-image.yml) to publish:
+
+- `ghcr.io/<owner>/onlyoffice-builder:<tag>`
+
+That image is then passed into the `DocumentServer` artifact-build workflow as the immutable builder environment.
+
 ## **How to build and run the products separately ▶️**
 
 Don't need everything? You can save time by building only the products you need. Just add the product name as an argument to the script.
